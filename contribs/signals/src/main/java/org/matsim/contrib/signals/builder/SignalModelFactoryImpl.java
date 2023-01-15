@@ -19,14 +19,14 @@
  * *********************************************************************** */
 package org.matsim.contrib.signals.builder;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.google.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.contrib.signals.controller.SignalController;
 import org.matsim.contrib.signals.controller.SignalControllerFactory;
+import org.matsim.contrib.signals.controller.pso.PsoPreprocessData;
+import org.matsim.contrib.signals.controller.pso.PsoSignalPlan;
 import org.matsim.contrib.signals.controller.sylvia.SylviaPreprocessData;
 import org.matsim.contrib.signals.controller.sylvia.SylviaSignalPlan;
 import org.matsim.contrib.signals.data.signalcontrol.v20.SignalPlanData;
@@ -35,19 +35,20 @@ import org.matsim.contrib.signals.model.SignalPlan;
 import org.matsim.contrib.signals.model.SignalSystem;
 import org.matsim.contrib.signals.model.SignalSystemImpl;
 
-import com.google.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
- * 
  * @author tthunig
  */
 final class SignalModelFactoryImpl implements SignalModelFactory {
-	
+
 	private static final Logger log = LogManager.getLogger(SignalModelFactoryImpl.class);
-	
-	@Inject private final Map<String, SignalControllerFactory> signalControllerFactoriesDeclaredByModules = new HashMap<>();
-	
+
+	@Inject
+	private final Map<String, SignalControllerFactory> signalControllerFactoriesDeclaredByModules = new HashMap<>();
+
 	@Override
 	public SignalSystem createSignalSystem(Id<SignalSystem> id) {
 		return new SignalSystemImpl(id);
@@ -68,6 +69,9 @@ final class SignalModelFactoryImpl implements SignalModelFactory {
 		DatabasedSignalPlan plan = new DatabasedSignalPlan(planData);
 		if (planData.getId().toString().startsWith(SylviaPreprocessData.SYLVIA_PREFIX)) {
 			return new SylviaSignalPlan(plan);
+		}
+		if (planData.getId().toString().startsWith(PsoPreprocessData.PSO_PREFIX)) {
+			return new PsoSignalPlan(plan);
 		}
 		return plan;
 	}

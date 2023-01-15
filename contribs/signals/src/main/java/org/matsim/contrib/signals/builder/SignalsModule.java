@@ -32,6 +32,7 @@ import org.matsim.contrib.signals.analysis.SignalEvents2ViaCSVWriter;
 import org.matsim.contrib.signals.controller.SignalControllerFactory;
 import org.matsim.contrib.signals.controller.fixedTime.DefaultPlanbasedSignalSystemController;
 import org.matsim.contrib.signals.controller.laemmerFix.LaemmerSignalController;
+import org.matsim.contrib.signals.controller.pso.PsoSignalController;
 import org.matsim.contrib.signals.controller.sylvia.SylviaSignalController;
 import org.matsim.contrib.signals.model.SignalSystemsManager;
 import org.matsim.contrib.signals.sensor.DownstreamSensor;
@@ -52,7 +53,7 @@ import com.google.inject.multibindings.MapBinder;
  * signal controllers, you can add a respective factory by calling the method
  * addSignalControllerFactory. It is also possible to use different control
  * schemes in one scenario at different intersections (i.e. signal systems).
- * 
+ *
  * @author tthunig
  */
 class SignalsModule extends AbstractModule {
@@ -69,8 +70,9 @@ class SignalsModule extends AbstractModule {
 		signalControllerFactoryClassNames.put(DefaultPlanbasedSignalSystemController.IDENTIFIER, DefaultPlanbasedSignalSystemController.FixedTimeFactory.class);
 		signalControllerFactoryClassNames.put(SylviaSignalController.IDENTIFIER, SylviaSignalController.SylviaFactory.class);
 		signalControllerFactoryClassNames.put(LaemmerSignalController.IDENTIFIER, LaemmerSignalController.LaemmerFactory.class);
+		signalControllerFactoryClassNames.put(PsoSignalController.IDENTIFIER, PsoSignalController.PsoFactory.class);
 	}
-	
+
 	@Override
 	public void install() {
 
@@ -79,7 +81,7 @@ class SignalsModule extends AbstractModule {
 		// yyyy move to individual config files???  kai, feb'19
 
 		this.signalControllerFactoryMultibinder = MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {}, new TypeLiteral<SignalControllerFactory>() {});
-		
+
 		if ((boolean) ConfigUtils.addOrGetModule(getConfig(), SignalSystemsConfigGroup.GROUP_NAME, SignalSystemsConfigGroup.class).isUseSignalSystems()) {
 			// bindings for sensor-based signals (also works for fixed-time signals)
 			bind(SignalModelFactory.class).to(SignalModelFactoryImpl.class);
@@ -93,7 +95,7 @@ class SignalsModule extends AbstractModule {
 				 * configure()... theresa, aug'18 */
 				signalControllerFactoryMultibinder.addBinding(identifier).to(signalControllerFactoryClassNames.get(identifier));
 			}
-			
+
 			// general signal bindings
 			bind(SignalSystemsManager.class).toProvider(FromDataBuilder.class).in(Singleton.class);
 			addMobsimListenerBinding().to(QSimSignalEngine.class);
@@ -114,10 +116,10 @@ class SignalsModule extends AbstractModule {
 			bind(NetworkTurnInfoBuilderI.class).to(NetworkWithSignalsTurnInfoBuilder.class);
 		}
 	}
-	
+
 	/**
 	 * Call this method when you want to add your own SignalController. E.g. via signalsModule.addSignalControllerFactory().to(LaemmerSignalController.LaemmerFactory.class)
-	 * 
+	 *
 	 * @param signalControllerFactoryClassName
 	 */
 	final void addSignalControllerFactory(String key, Class<? extends SignalControllerFactory> signalControllerFactoryClassName) {
